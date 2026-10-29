@@ -1,0 +1,100 @@
+# Example configuration for the gawk web server.
+#
+# Copy to server.conf and edit:
+#   cp server.conf.example server.conf
+#
+# Priority: built-in defaults < server.conf < AWKWS_* environment < CLI.
+# Comments must be on their own line; inline comments are not stripped.
+
+[server]
+# gawk always binds 0.0.0.0; host is advisory only.
+host = 0.0.0.0
+port = 8080
+root = ./www
+index = index.html,index.htm
+directory_listing = on
+server_header = awk-web-server
+
+[http]
+max_request_line = 8192
+max_header_bytes = 32768
+max_headers = 100
+# seconds; 0 disables the total header deadline
+request_timeout = 30
+# milliseconds; 0 disables the per-read timeout
+read_timeout = 10000
+body_read_timeout = 10000
+# Trust X-Forwarded-For / X-Real-IP only behind a controlled proxy.
+trust_forwarded = off
+max_body_bytes = 1048576
+
+[logging]
+# "-" means stderr; otherwise a file path.
+access_log = -
+error_log = -
+
+[proxy]
+# Reverse proxy is off by default. Example route:
+#
+# [proxy:api]
+# host = *
+# path = /api/
+# upstream = http://127.0.0.1:3000
+# strip_prefix = /api
+# set_host = upstream
+# timeout = 10
+# max_response_bytes = 1048576
+# x_forwarded = on
+# rewrite_location = on
+enabled = off
+
+[cgi]
+# Create cgi.root and scripts before enabling.
+enabled = off
+prefix = /cgi-bin
+root = ./cgi-bin
+runner = ./lib/cgi_runner.sh
+timeout = 10
+max_output_bytes = 1048576
+# Interpreter allowlist. Absolute paths and basenames for /usr/bin/env
+# are accepted. The allowlist is not a sandbox.
+interpreters = /bin/sh,/bin/bash,/usr/bin/sh,/usr/bin/bash,/usr/bin/env,sh,bash,python3,perl,gawk,/usr/bin/python3,/usr/bin/perl,/usr/bin/gawk
+
+[tls]
+# TLS is terminated by socat or stunnel; gawk speaks plain HTTP.
+# Certificates are not included. See CERTS.md.
+enabled = off
+listen_port = 8443
+cert = ./certs/server.crt
+key = ./certs/server.key
+ca = ./certs/root_ca.crt
+verify_client = off
+protocols = TLSv1.2,TLSv1.3
+ciphers =
+proxy = auto
+
+# Virtual host example. Create the directory yourself and uncomment:
+#
+# [vhost:example.local]
+# root = ./sites/example
+# index = index.html
+# directory_listing = off
+
+# ---------------------------------------------------------------------------
+# Copyright (C) 2026 awk_web_server contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+# ---------------------------------------------------------------------------
